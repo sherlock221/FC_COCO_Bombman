@@ -1,3 +1,5 @@
+import GameManager from "./GameManager";
+
 // Learn TypeScript:
 //  - [Chinese] http://docs.cocos.com/creator/manual/zh/scripting/typescript.html
 //  - [English] http://www.cocos2d-x.org/docs/creator/manual/en/scripting/typescript.html
@@ -29,12 +31,18 @@ export default class Player extends cc.Component {
     //同时碰撞物体的个数
     touchingNumber  = 0;
 
+
+    body : cc.RigidBody;
+
+    end : boolean = false
+
     onLoad () {
         
         //事件监听
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN,this.keyDown,this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP,this.keyUp,this);
-         
+        
+        this.body = this.getComponent(cc.RigidBody);
     }
 
     start () {
@@ -42,72 +50,21 @@ export default class Player extends cc.Component {
     }
 
 
+
     /**
-     * 碰撞检测
+     * 碰撞开始
      * @param other   产生碰撞的另一个碰撞组件
      * @param self    产生碰撞的自身的碰撞组件
      */
-    onCollisionEnter (other, self){
-       console.log("发生碰撞.."); 
-      //核心原理 : 如果发生了不可移动的碰撞（障碍物），就退回到“上一次位置”
-      
-      //当前另一个碰撞组件的 aabb碰撞框
-      let otherAabb = other.world.aabb;
-      //上一次计算的碰撞组件的 aabb 碰撞框
-      let otherPreAabb = other.world.preAabb.clone();
-
-      //当前自身碰撞组件的 aabb碰撞框
-      let selfAabb = self.world.aabb;
-      //上一次计算的碰撞组件的 aabb 碰撞框
-      let selfPreAabb = self.world.preAabb.clone();
-
-      selfPreAabb.x = selfAabb.x;
-      otherPreAabb.x = otherAabb.x;
-        
-
-      this.node.color = cc.Color.RED;
-      this.touchingNumber++;
-      
-    
-      if(cc.Intersection.rectRect(selfPreAabb,otherPreAabb)){        
-            if (selfPreAabb.xMax > otherPreAabb.xMax) {
-                this.node.x = otherPreAabb.xMax - this.node.parent.x;  
-                this.collisionX = -1;     
-            }
-            
-            else if (selfPreAabb.xMin < otherPreAabb.xMin) {
-                this.node.x = otherPreAabb.xMin - selfPreAabb.width - this.node.parent.x;        
-                this.collisionX = 1;            
-            }    
-
-            this.dirX = 0;
-            other.touchingX = true;
-            return;                                  
-      }
-
-
-      selfPreAabb.y = selfAabb.y;
-      otherPreAabb.y = otherAabb.y;
-
-
-      if (cc.Intersection.rectRect(selfPreAabb, otherPreAabb)) {
-        if ((selfPreAabb.yMax > otherPreAabb.yMax)) {
-            this.node.y = otherPreAabb.yMax - this.node.parent.y;
-    
-            this.collisionY = -1;
-        }
-        else if ((selfPreAabb.yMin < otherPreAabb.yMin)) {
-            this.node.y = otherPreAabb.yMin - selfPreAabb.height - this.node.parent.y;
-            this.collisionY = 1;
-        }
-        
-        this.dirY  = 0;    
-        other.touchingY = true;           
-    }    
-
-      
-     
+    onBeginContact (contact, selfCollider, otherCollider){
+       console.log("发生碰撞..");    
+      this.node.color = cc.Color.RED;      
     }
+
+    onEndContact(contact, selfCollider, otherCollider){
+        this.node.color = cc.Color.WHITE;      
+    }
+
 
     onCollisionExit(other){
         this.touchingNumber--;
@@ -123,25 +80,52 @@ export default class Player extends cc.Component {
             other.touchingY = false;
             this.collisionY = 0;           
         }
-
     }
    
+    //检测移动move
     
 
     update (dt) {
 
-        let speed  = this.hSpeed;
+        // let distanceX  = 0;
+        // let distanceY = 0;
+        // let nextTile = null;
+        // if(this.dirX){
+        //     distanceX = this.dirX * this.hSpeed * dt;                       
+        // }  
 
-        if(this.dirX != 0  && this.dirX != this.collisionX){
-         this.node.x +=  this.dirX * speed * dt;
-        }  
+        // if(this.dirY){
+        //     distanceY = this.dirY * this.hSpeed * dt;                       
+        // }  
 
-        if(this.dirY !=0 && this.dirY != this.collisionY){
-            this.node.y +=  this.dirY * speed * dt;
-        }   
+        // if(this.dirX || this.dirY){
+        //     //获得瓦片坐标         
+        //   nextTile = GameManager.GetInstance().getTilePropertiesByPosition(cc.v2(this.node.x + distanceX,this.node.y + distanceY));      
     
+        // }
+                           
+        // if(!nextTile){            
+        //     this.node.x += distanceX;
+        //     this.node.y += distanceY
+        // }
+
+     
+        
+       let cb = cc.v2(this.dirX * this.hSpeed,this.dirY * this.hSpeed);
+       this.body.linearVelocity = cb;
+
+      
+
+
+      
+        
+ 
     
+                     
     }
+
+    
+    
 
     keyDown(event){
 
