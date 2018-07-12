@@ -99,28 +99,14 @@ export default class Bomb extends cc.Component {
     /**
      * 产生中心火焰
      */
-    _createCenterBlast(wrapNode :cc.Node){
-
-        //生成中心colider
-        let centerCollider : cc.PhysicsBoxCollider = wrapNode.addComponent('cc.PhysicsBoxCollider');
-        centerCollider.sensor = true;
-        centerCollider.offset = this.node.position;
-        centerCollider.size = cc.size(16,16);
-        centerCollider['tag'] = ColliderEnum.Blast;
-        wrapNode.setAnchorPoint(cc.p(0.5,0.5));
-        let rigb : cc.RigidBody = wrapNode.getComponent(cc.RigidBody);
-        rigb.type = cc.RigidBodyType.Static;
-        rigb.enabledContactListener = false;
-        rigb.fixedRotation = true;
-        rigb.gravityScale = 0;
-
-        //添加火焰脚本
-        wrapNode.addComponent(Blast);
+    _createCenterBlast(wrapNode :cc.Node){  
+         //添加火焰脚本
+         wrapNode.addComponent(Blast);
 
          //中心火焰
          let blastCenter = cc.instantiate(this.prefabs[0]);
          blastCenter.position = this.node.position;
-         this.blastPosList.push(blastCenter);
+         wrapNode.addChild(blastCenter);
         
 
     }
@@ -137,44 +123,21 @@ export default class Bomb extends cc.Component {
         let rotation = 0;
          //数量
         let num = endPoint.sub(startPotin).mag() / 16;
-        //生成colider
-        let collider : cc.PhysicsBoxCollider = wrapNode.addComponent('cc.PhysicsBoxCollider');
-        collider.sensor = true;
-        collider['tag'] = ColliderEnum.Blast;
-        
-        cc.log('或——-',dir,endPoint,startPotin,endPoint.sub(startPotin).mag());
-
-        collider.offset.x = endPoint.x;
-        collider.offset.y = endPoint.y;
-
-        collider.size.width  = 16;
-        collider.size.height = 16;
-      
+       
         //方向
         if(dir.equals(cc.p(0,1))){
             rotation = 0;
-            collider.size.height = 16 * num;
-            collider.offset.y -= collider.size.height /2 - 8;
         }
         else if (dir.equals(cc.p(1,0))){
-            rotation = 90; 
-            collider.size.width = 16 * num;
-            collider.offset.x -= collider.size.width /2 - 8;
-           
+            rotation = 90;                      
         }
         else if (dir.equals(cc.p(0,-1))){
             rotation = 180;
-            collider.size.height = 16 * num;
-            collider.offset.y += collider.size.height /2 - 8;
-           
         }
         else if (dir.equals(cc.p(-1,0))){
             rotation = 270;
-            collider.size.width = 16 * num;
-            collider.offset.x += collider.size.width /2 - 8;
         }
 
- 
         for(let j=0;j<num; j++){       
             //外火焰 or 内火焰
             let node = cc.instantiate(this.prefabs[j == num -1 ? 1 : 2]);
@@ -209,17 +172,10 @@ export default class Bomb extends cc.Component {
         for(let i = 0; i < directions.length;i++){ 
   
             endPos = startPos.add(directions[i].scale(cc.p(16 * checkGird,16 * checkGird)));
-            //发射射线 
-            let results : cc.PhysicsRayCastResult[] = cc.director.getPhysicsManager().rayCast(startPos,endPos,cc.RayCastType.All)
-                        .filter((r)=>{
-                            let tag = r.collider['tag'];
-                            //过滤障碍
-                            if(tag ==  ColliderEnum.Wall ||  tag == ColliderEnum.Steel){
-                                return true;
-                            }
-                            return false;
-                        })
 
+            //发射射线 
+            let results : cc.PhysicsRayCastResult[] = cc.director.getPhysicsManager().rayCast(startPos,endPos,cc.RayCastType.All);
+            
             //障碍物进行排序处理
             results.sort((c1,c2)=>{
                 let dis1 = c1.point.magSqr();
@@ -237,9 +193,21 @@ export default class Bomb extends cc.Component {
                     return -1;
                 }
                 return 0;  
-            });            
-                    
-            //障碍物
+            });       
+              
+             //检测首个非障碍物的collider
+            this._checkFirstCollider(results);
+
+            //过滤障碍
+            results = results.filter((r,index)=>{
+                let tag = r.collider['tag'];      
+                if(tag ==  ColliderEnum.Wall ||  tag == ColliderEnum.Steel){
+                    return true;
+                }
+                return false;
+            })
+
+            //处理障碍物体
             if(results.length > 0){
                 let collider = results[0].collider;
                 //最近的一个collider的位置
@@ -251,8 +219,7 @@ export default class Bomb extends cc.Component {
                     emptyList.push({dir: directions[i], pos : emptyEndPos});
                 }
 
-                //只处理最近一个障碍物
-                this._handleConcactCollider(collider);
+                this._handleConcactCollider(collider);  
             }
             else{
                 emptyList.push({dir: directions[i], pos : this.node.parent.convertToNodeSpaceAR(endPos)}); 
@@ -263,6 +230,15 @@ export default class Bomb extends cc.Component {
        return emptyList;
     } 
 
+    _checkFirstCollider(results){
+        if(results.length <= 0) return;        
+        let collider = results[0].collider;
+        if(collider['tag'] != ColliderEnum.Steel || collider['tag'] != ColliderEnum.Wall ){
+            this._handleConcactCollider(collider);  
+        }
+
+         
+    }
     
     _handleConcactCollider(collider){
         switch (collider['tag']){ 
@@ -270,6 +246,11 @@ export default class Bomb extends cc.Component {
                 cc.log("炸到墙");
                 collider['node'].getComponent("Wall").blastWall();
                 break;
+                case ColliderEnum.Player :
+                 cc.log("玩家死亡");
+                 collider['node'].getComponent("Player").playerDead();
+                 break;
+   
             default:
                 break;         
         }

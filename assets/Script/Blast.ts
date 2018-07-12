@@ -20,15 +20,17 @@ export default class Blast extends cc.Component {
 
     // onLoad () {}
 
-
-   
     start () {
+
+        this.scheduleOnce(()=>{
+            this.node.destroy();
+        },0.58)
     }
 
-    onAniEnd(){
+    // onAniEnd(){
 
-        // this.node.destroy();
-    }
+        
+    // }
 
     // update (dt) {}
 }

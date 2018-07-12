@@ -111,7 +111,8 @@ export default class Player extends cc.Component {
     onBeginContact (contact, selfCollider, otherCollider){
        console.log("发生碰撞..");    
        if(otherCollider['tag'] == ColliderEnum.Blast){
-           this.playerDead();
+           cc.log("玩家死亡..");
+        //    this.playerDead();
        }
       this.node.color = cc.Color.RED;      
     }
