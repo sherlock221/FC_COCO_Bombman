@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" tiledversion="1.1.5" orientation="orthogonal" renderorder="right-down" width="31" height="15" tilewidth="16" tileheight="16" infinite="0" nextobjectid="118">
+ <tileset firstgid="1" name="wall-base" tilewidth="16" tileheight="16" tilecount="10" columns="10">
+  <image source="../wall-base.png" width="160" height="16"/>
+ </tileset>
+ <layer name="bg" width="31" height="15">
+  <properties>
+   <property name="type" value="bg"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJzjYmBg4BrFo3gUj+JRPIpHMckYACwKEis=
+  </data>
+ </layer>
+ <layer name="wall" width="31" height="15">
+  <properties>
+   <property name="type" value="wall"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJzjZGBg4BxAPBAA2e6BoEf9TV8w6u9Rf4/6m/b0QPt7oDAADD4GDQ==
+  </data>
+ </layer>
+</map>
