@@ -80,9 +80,9 @@ export default class GameManager extends cc.Component {
           //开启物理
           cc.director.getPhysicsManager().enabled = true;
           this.debugDrawFlags = cc.director.getPhysicsManager().debugDrawFlags;
-          cc.director.getPhysicsManager().debugDrawFlags = 
-              cc.PhysicsManager.DrawBits.e_jointBit |
-              cc.PhysicsManager.DrawBits.e_shapeBit;
+        //   cc.director.getPhysicsManager().debugDrawFlags = 
+        //       cc.PhysicsManager.DrawBits.e_jointBit |
+        //       cc.PhysicsManager.DrawBits.e_shapeBit;
     }
 
     onDisable() {
@@ -234,7 +234,7 @@ export default class GameManager extends cc.Component {
            }    
         }
                        
-        // this._createWall();
+        this._createWall();
     }
 
     /**

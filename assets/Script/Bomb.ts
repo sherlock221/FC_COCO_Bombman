@@ -11,7 +11,7 @@ export default class Bomb extends cc.Component {
      private _maxCount  : number;
 
      //炸弹爆炸范围
-     private _range  : number = 5 ;
+     private _range  : number = 3 ;
  
      public get maxCount(){ return this._maxCount;}
      public set maxCount(value){ this._maxCount = value;}
@@ -100,6 +100,7 @@ export default class Bomb extends cc.Component {
      * 产生中心火焰
      */
     _createCenterBlast(wrapNode :cc.Node){  
+
          //添加火焰脚本
          wrapNode.addComponent(Blast);
 
@@ -107,8 +108,10 @@ export default class Bomb extends cc.Component {
          let blastCenter = cc.instantiate(this.prefabs[0]);
          blastCenter.position = this.node.position;
          wrapNode.addChild(blastCenter);
-        
 
+         let wordPos = this.node.parent.convertToWorldSpaceAR(blastCenter.position);
+         wrapNode.getComponent(Blast).centerRect = new cc.Rect(wordPos.x - 4,wordPos.y - 4,8,8);
+        
     }
 
     /**
@@ -124,18 +127,46 @@ export default class Bomb extends cc.Component {
          //数量
         let num = endPoint.sub(startPotin).mag() / 16;
        
+        let rectX =  endPoint.x;
+        let rectWidth = 2;
+        let rectHeight = 16;
+        let rectY = endPoint.y;
+        let  rectName = '';
+
+        let blast = wrapNode.getComponent(Blast);
+
         //方向
         if(dir.equals(cc.p(0,1))){
             rotation = 0;
+            rectHeight = 16 * num - 4;
+            rectY -=  rectHeight -4;
+            rectX -= rectWidth /2;
+            rectName= 'upRect';
+  
+        }
+         else if (dir.equals(cc.p(0,-1))){
+            rotation = 180;
+            rectHeight = 16 * num - 4;
+            rectY +=  -4;
+            rectX -= rectWidth /2;
+            rectName= 'downRect';
         }
         else if (dir.equals(cc.p(1,0))){
-            rotation = 90;                      
+            rotation = 90;     
+            rectWidth = 16 * num - 4;
+            rectX -= rectWidth -4;  
+            rectHeight = 2;   
+            rectY -= rectHeight /2;
+            rectName= 'rightRect';
         }
-        else if (dir.equals(cc.p(0,-1))){
-            rotation = 180;
-        }
+       
         else if (dir.equals(cc.p(-1,0))){
             rotation = 270;
+            rectWidth = 16 * num - 4;
+            rectX -= 2;  
+            rectHeight = 2;   
+            rectY -= rectHeight /2;
+            rectName= 'leftRect';  
         }
 
         for(let j=0;j<num; j++){       
@@ -145,6 +176,9 @@ export default class Bomb extends cc.Component {
             node.rotation = rotation; 
             wrapNode.addChild(node); 
         }
+
+        let wordPos = this.node.parent.convertToWorldSpaceAR(cc.p(rectX,rectY));
+        blast[rectName] = new cc.Rect(wordPos.x,wordPos.y,rectWidth,rectHeight);
     
       
     }
@@ -195,8 +229,7 @@ export default class Bomb extends cc.Component {
                 return 0;  
             });       
               
-             //检测首个非障碍物的collider
-            this._checkFirstCollider(results);
+        
 
             //过滤障碍
             results = results.filter((r,index)=>{
@@ -246,11 +279,6 @@ export default class Bomb extends cc.Component {
                 cc.log("炸到墙");
                 collider['node'].getComponent("Wall").blastWall();
                 break;
-                case ColliderEnum.Player :
-                 cc.log("玩家死亡");
-                 collider['node'].getComponent("Player").playerDead();
-                 break;
-   
             default:
                 break;         
         }
