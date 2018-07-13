@@ -19,12 +19,28 @@ export default class Blast extends cc.Component {
     // LIFE-CYCLE CALLBACKS:
 
     // onLoad () {}
+    cs : cc.PhysicsBoxCollider[] = [];
+
+    
 
     start () {
 
-        this.scheduleOnce(()=>{
-            this.node.destroy();
-        },0.58)
+        // this.scheduleOnce(()=>{
+        //     this.node.destroy();
+        // },0.58)
+
+       
+     this.cs  = this.getComponentsInChildren('cc.PhysicsBoxCollider');
+        
+        cc.log(this.cs);
+
+        
+        let v2 = this.cs[0].offset;
+        cc.log('aabb->',this.cs[0].getAABB());
+        let ab : cc.Rect = new cc.Rect(15.68,191.68,16.64,16.639999999999986);
+        var colliderList = cc.director.getPhysicsManager().testAABB(ab);
+
+        cc.log(colliderList);
     }
 
     // onAniEnd(){
@@ -32,5 +48,8 @@ export default class Blast extends cc.Component {
         
     // }
 
-    // update (dt) {}
+    update (dt) {
+        
+       
+    }
 }
