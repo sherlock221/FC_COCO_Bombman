@@ -23,10 +23,10 @@ export default class CameraCtrl extends cc.Component {
         this.camera = this.getComponent(cc.Camera);
     }
     start () {
-
+       
     }
     onEnable () {
-        cc.director.getPhysicsManager().attachDebugDrawToCamera(this.camera);
+        cc.director.getPhysicsManager().attachDebugDrawToCamera(this.camera);         
     }
 
     onDisable () {
@@ -34,8 +34,18 @@ export default class CameraCtrl extends cc.Component {
     }
 
     lateUpdate(dt){
-        let targetPos = this.Hero.convertToWorldSpaceAR(cc.Vec2.ZERO);
-        this.node.position = this.node.parent.convertToNodeSpaceAR(targetPos); 
+       
+        let targetPos = this.Hero.convertToWorldSpaceAR(cc.Vec2.ZERO);                
+        //只移动x轴心
+        let pos = this.node.parent.convertToNodeSpaceAR(targetPos);
+        
+
+        if(pos.x <= 402 &&  pos.x >= 249){
+            this.node.position = cc.p(pos.x,120);
+             cc.log('px->',pos);
+        }
+
+        
         // let ratio = targetPos.y / cc.winSize.height;
         // this.camera.zoomRatio = 1 + (0.5 - ratio) * 0.5;
     }

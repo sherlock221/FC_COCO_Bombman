@@ -5,7 +5,7 @@ const {ccclass, property} = cc._decorator;
 
 @ccclass
 export default class Blast extends cc.Component {
-
+        
 
     //碰撞矩形
     public upRect : cc.Rect;

@@ -73,7 +73,7 @@ export default class GameManager extends cc.Component {
         GameManager.m_instance = this;       
         this.EventBus = new cc.EventTarget();  
         
-        this._player = cc.find("Canvas/Player").getComponent(Player);
+        this._player = cc.find("Game/Player").getComponent(Player);
     }
 
     onEnable() {
