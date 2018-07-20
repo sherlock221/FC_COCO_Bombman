@@ -1,0 +1,19 @@
+{
+    "items" : [1,2,3],
+    "walls" : 60,
+    "door" : 1,
+    "monsters" :[
+        {
+            "type" : 1,
+            "speed" : 30,
+            "hp" : 1,
+            "count" : 3
+        },
+        {
+            "type" : 2,
+            "speed" : 30,
+            "hp" : 1,
+            "count" : 5
+        }
+    ]
+}

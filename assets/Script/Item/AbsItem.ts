@@ -9,6 +9,7 @@ export default abstract class AbsItem extends cc.Component {
     private _itemDesc: string;
     private _itemIcon: string;
 
+    
 
     public get id(){ return this._id;}
     public set id(value){ this._id = value;}

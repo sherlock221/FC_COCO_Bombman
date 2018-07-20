@@ -1,11 +1,13 @@
 import UpgradeItem from "./UpgradeItem";
 import Bomb from "../Bomb";
+import Player from "../Player";
+import GameManager from "../GameManager";
 
 export default class BombRange extends UpgradeItem {
 
-    private _bombPrefab : cc.Prefab;
+    private _player : Player;
     
-    constructor(id :number ,itemName : string, itemDesc : string, itemIcon : string, itemLevel : number, itemMaxLevel : number, bombPrefab : cc.Prefab){
+    constructor(id :number ,itemName : string, itemDesc : string, itemIcon : string, itemLevel : number, itemMaxLevel : number, player : Player){
         super();
         this.id = id;
         this.itemName = itemName;
@@ -13,14 +15,19 @@ export default class BombRange extends UpgradeItem {
         this.itemIcon = itemIcon;
         this.itemLevel = itemLevel;
         this.itemMaxLevel = itemMaxLevel;
-        this._bombPrefab = bombPrefab;
+        this._player = player;
     }
       
-    public execute(): void {
-        let bomb = this._bombPrefab.data.getComponent(Bomb);
-        bomb.range += this.itemLevel;
-    }
+    
 
+    public execute(): void {
+        this._player.bombLevel += this.itemLevel;     
+        if(this._player.bombLevel > this.itemMaxLevel){
+            this._player.bombLevel = this.itemMaxLevel;
+        }
+
+        GameManager.GetInstance().updateItemsUI(this);
+    }
 
 
 }

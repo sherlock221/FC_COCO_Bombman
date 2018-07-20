@@ -4,15 +4,14 @@
 enum ItemEnum {
 
     //跑鞋
-    RunShoes,
+    RunShoes = 1,
     //提升爆炸范围
-    BombRange,
+    BombRange = 2 ,
     //增加炸弹携带数量
-    BombCount,
+    BombCount = 3,
     
     //穿炸弹
-    
-    
+
 
 }
 

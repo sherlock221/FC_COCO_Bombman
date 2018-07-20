@@ -1,13 +1,15 @@
 import GameManager from "./GameManager";
 import ColliderEnum from "./const/ColliderEnum";
 import Item from "./Item/Item";
+import Role from "./Role";
+import Bomb from "./Bomb";
+import AbsItem from "./Item/AbsItem";
 
 const {ccclass, property} = cc._decorator;
 
-//https://blog.csdn.net/potato47/article/details/54958538
 
 @ccclass
-export default class Player extends cc.Component {
+export default class Player extends Role {
     
     //向右精灵动画 左方向直接反转
     @property([cc.SpriteFrame])
@@ -21,48 +23,42 @@ export default class Player extends cc.Component {
     @property([cc.SpriteFrame])
     DownWalkSprites : cc.SpriteFrame[] = [];
     
-
-    //玩家刚体
-    playerBody : cc.RigidBody;
-    // 0 正常  1 死亡
-    state  : number = 0;
-    //玩家移动速度
-    speed : number = 60;
-
     //玩家持有道具列表
-    items : Item[] = [];
+    items : AbsItem[] = [];
 
-    //玩家sprite
-    playerSpr : cc.Sprite;
-     //人物方向
-    dirX : number  = 0;
-    dirY : number = 0;
-    
     //玩家放置炸弹集合
     private bombPosList = [];
 
-    ani : cc.Animation;
-    rgb : cc.RigidBody;
+    //炸弹等级
+    bombLevel : number = 1;
+
+    //炸弹携带数量
+    bombCount : number = 5;
+    
+   /**
+    * 构造函数
+    */
+   constructor() {
+       super();
+       //玩家移动速度
+       this.speed = 60;
+       //当前hp为1
+       this.hp = 1;
+   }
 
 
     onLoad () {
-    
+        super.onLoad();
         //方向按键监听
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN,this.keyDown,this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP,this.keyUp,this);
-        
-        this.playerBody = this.getComponent(cc.RigidBody);
-        this.playerSpr = this.getComponent(cc.Sprite);
-
+    
         //添加炸弹事件监听
         GameManager.GetInstance().EventBus.on("EventBombDestory",this._onEventBombDestory,this);
-
-        this.ani = this.getComponent(cc.Animation);
-        this.rgb = this.getComponent(cc.RigidBody);
     }
 
     start () {
-
+       
         //设置碰撞tag
         this.getComponent('cc.PhysicsCircleCollider').tag = ColliderEnum.Player;
 
@@ -72,19 +68,20 @@ export default class Player extends cc.Component {
         GameManager.GetInstance().EventBus.off("EventBombDestory",this._onEventBombDestory,this);
     }
 
+
+   
+
     /**
      * 玩家死亡
      */
     playerDead(){
-
         //死亡标识
         this.state = 1;
         //播放动画
         this.ani.play("player_dead");
         //关闭物理
         this.rgb.active = false;
-        
-        //游戏结束
+    
     }
 
     onAniDeadEnd(){
@@ -99,11 +96,13 @@ export default class Player extends cc.Component {
      * @param self    产生碰撞的自身的碰撞组件
      */
     onBeginContact (contact, selfCollider, otherCollider){
-       console.log("发生碰撞..");    
-       if(otherCollider['tag'] == ColliderEnum.Blast){
-           cc.log("玩家死亡..");
-        //    this.playerDead();
-       }
+       console.log("发生碰撞..");       
+       if(otherCollider['tag'] == ColliderEnum.Monster){
+        cc.log("玩家死亡..");
+            setTimeout(()=>{
+                this.playerDead();
+            },10);        
+        }    
       this.node.color = cc.Color.RED;      
     }
 
@@ -111,23 +110,23 @@ export default class Player extends cc.Component {
         this.node.color = cc.Color.WHITE;      
     }
 
+    
    
     update (dt) {
 
      //左右方向   
      if(this.dirX){                              
-        this._playFrame(this.playerSpr,this.WalkSprites,"x");
+        this._playFrame(this.spr,this.WalkSprites,"x");
         this.node.scaleX  = this.dirX;  
      } 
      else if(this.dirY){
-        this._playFrame(this.playerSpr,this.dirY == 1 ? this.UpWalkSprites :  this.DownWalkSprites,"y");
+        this._playFrame(this.spr,this.dirY == 1 ? this.UpWalkSprites :  this.DownWalkSprites,"y");
      }
 
 
        //移动控制
        let moveSpeed = cc.v2(this.dirX * this.speed,this.dirY * this.speed);
-       this.playerBody.linearVelocity = moveSpeed;
-       
+       this.rgb.linearVelocity = moveSpeed;       
 
     }
 
@@ -173,6 +172,7 @@ export default class Player extends cc.Component {
         GameManager.GetInstance().loadPrefab("Bomb")
             .then(res=>{
                 let bomb = res as cc.Node;
+                bomb.getComponent(Bomb).init(this.bombLevel);
                 //炸弹位置
                 bomb.position = GameManager.GetInstance().getCurrentTiledPosition(this.node.position);        
                 GameManager.GetInstance().Items.addChild(bomb);                 

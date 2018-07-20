@@ -1,0 +1,37 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "lower_monster_01_up",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 0.05,
+  "sample": 60,
+  "speed": 0.1,
+  "wrapMode": 2,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "9678b367-4dd3-4a9b-b128-d691f4840055"
+            }
+          },
+          {
+            "frame": 0.016666666666666666,
+            "value": {
+              "__uuid__": "c5238348-55d0-4c1f-bc5b-59ce4f0a4bbe"
+            }
+          },
+          {
+            "frame": 0.03333333333333333,
+            "value": {
+              "__uuid__": "b253a7e1-c519-4d71-a9fe-b8603bc9afc6"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}

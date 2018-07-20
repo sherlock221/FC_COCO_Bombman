@@ -105,6 +105,10 @@ export default class Blast extends cc.Component {
                  cc.log("玩家死亡");
                  collider['node'].getComponent("Player").playerDead();
                  break;
+                 case ColliderEnum.Monster :
+                    cc.log("怪物死亡");
+                    collider['node'].getComponent("Monster").monsterDead();
+                 break;
             default:
                 break;         
         }

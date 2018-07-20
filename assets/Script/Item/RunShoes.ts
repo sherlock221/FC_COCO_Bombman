@@ -1,5 +1,6 @@
 import Player from "../Player";
 import AbsItem from "./AbsItem";
+import GameManager from "../GameManager";
 
 
 /**
@@ -13,8 +14,9 @@ export default   class RunShoes extends AbsItem{
     //额外的移动速度30点
     private extraSpeed = 30;
 
-    constructor(itemName : string, itemDesc : string, itemIcon : string,player : Player){
+    constructor(id :number,itemName : string, itemDesc : string, itemIcon : string,player : Player){
         super();
+        this.id = id;
         this.itemName = itemName;
         this.itemDesc = itemDesc;
         this.itemIcon = itemIcon;
@@ -23,6 +25,7 @@ export default   class RunShoes extends AbsItem{
 
     public execute(): void {
         this._player.speed += this.extraSpeed;
+        GameManager.GetInstance().updateItemsUI(this);
     }
 
 }

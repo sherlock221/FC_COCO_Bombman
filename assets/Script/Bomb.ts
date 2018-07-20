@@ -10,13 +10,13 @@ export default class Bomb extends cc.Component {
      //炸弹存在最大数量
      private _maxCount  : number;
 
-     //炸弹爆炸范围
-     private _range  : number = 3 ;
+     
+     @property
+     public range  : number = 1 ;
  
      public get maxCount(){ return this._maxCount;}
      public set maxCount(value){ this._maxCount = value;}
-     public get range(){ return this._range;}
-     public set range(value){ this._range = value;}
+   
   
     //炸弹爆炸时间
     time : number  = 2;
@@ -48,10 +48,13 @@ export default class Bomb extends cc.Component {
         //启动倒计时
         this.scheduleOnce(()=>{
             this._bomb();
-        },this.time);
-
-        
+        },this.time);   
     }
+
+    init(level){
+        this.range = level;
+    }
+    
 
     
     _toggleSensor(sensor){
@@ -80,7 +83,7 @@ export default class Bomb extends cc.Component {
         //火焰根节点
         let wrapNode = new cc.Node();
         //射线检测结果
-        let emptyList = this._rayCastAround(this._range);
+        let emptyList = this._rayCastAround(this.range);
         //产生中心火焰
         this._createCenterBlast(wrapNode);
         //产生外层火焰

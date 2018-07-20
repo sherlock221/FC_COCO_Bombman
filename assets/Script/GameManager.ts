@@ -4,6 +4,10 @@ import RunShoes from "./Item/RunShoes";
 import Player from "./Player";
 import ItemEnum from "./const/ItemEnum";
 import BombRange from "./Item/BombRange";
+import Monster from "./Monster";
+import ObjectOrderEnum from "./const/ObjectOrder";
+import AbsItem from "./Item/AbsItem";
+import ItemUI from "./Item/ItemUI";
 
 const {ccclass, property} = cc._decorator;
 
@@ -39,19 +43,14 @@ export default class GameManager extends cc.Component {
     @property(cc.Prefab)
     ItemPrefab : cc.Prefab;
 
-    //随机生成墙壁数量
-    @property(Number)
-    randomWallNum : Number = 0;
-    
-
     //空格子
     emptyTiles : cc.Vec2[] = [];
-    //已经使用格子
-    useTiles : cc.Vec2[] = [];
-
-
+    
+    //墙格子
+    wallTiles : cc.Vec2[] = [];
+    
     //全部道具
-    allItems : {[key : number]:Item};
+    uiItems : AbsItem[];
 
     //调试模式    
     debugDrawFlags : number;
@@ -59,6 +58,8 @@ export default class GameManager extends cc.Component {
     //全局事件总栈
     EventBus : cc.EventTarget;
 
+    @property(cc.Prefab)
+    ItemUIPrefab : cc.Prefab;
 
     //玩家
     _player : Player;
@@ -74,6 +75,7 @@ export default class GameManager extends cc.Component {
         this.EventBus = new cc.EventTarget();  
         
         this._player = cc.find("Game/Player").getComponent(Player);
+        
     }
 
     onEnable() {
@@ -93,7 +95,8 @@ export default class GameManager extends cc.Component {
     start () {
         //初始化地图         
         this._initMap();  
-        this._initAllItems();          
+        //加载关卡
+        this.loadLevel(1);   
     }
 
 
@@ -170,6 +173,19 @@ export default class GameManager extends cc.Component {
         });
     }
 
+    loadData(dataName : string){
+        return new Promise((res,rej)=>{
+            cc.loader.loadRes("Data/"+dataName,function(err,data){
+                if(err) 
+                    rej(err);
+                else
+                    res(cc.instantiate(data));
+            });
+
+        });
+    }
+
+
     loadAtlas(atlaName : string){
         return new Promise((res,rej)=>{
             cc.loader.loadRes("Imgs/"+atlaName,cc.SpriteAtlas,function(err,atlas){
@@ -212,7 +228,7 @@ export default class GameManager extends cc.Component {
         
         // console.log("瓦片坐标-->",this.getTileCoordFromPosition(cc.v2(8,0)));
         // console.log("像素坐标-->",this.getPositionFromTileCoord(cc.v2(16,7)));
-
+        
      
         for (let i = 0; i < tiles.length; i++) {            
            let ty = Math.floor(i / layerSize.width);
@@ -229,47 +245,150 @@ export default class GameManager extends cc.Component {
             collider.apply();            
            }
            else{               
-            //空格子                                    
-            this.emptyTiles.push(cc.v2(tx,ty));                     
+                //空格子                                    
+                this.emptyTiles.push(cc.v2(tx,ty));                     
            }    
         }
-                       
-        this._createWall();
+                           
     }
 
     /**
      * 创造可破坏的墙
      */
-    _createWall(){
+    _createWall(randomNum : number){
+        
         //随机墙壁
-        this._randomWall(this.randomWallNum);     
+        this.wallTiles = this._randomWall(randomNum);   
+
         //添加物理
-        this.useTiles.forEach(tilePos=>{                
+        this.wallTiles.forEach(tilePos=>{                
             let node = cc.instantiate(this.WallPrefab);
             node.getComponent('cc.PhysicsBoxCollider').tag = ColliderEnum.Wall;
             let pos = this.getPositionFromTileCoord(tilePos);
             node.position = pos;
+            node.setLocalZOrder(ObjectOrderEnum.Wall);
             this.Items.addChild(node);
+            
         });    
-    }
 
-    _randomWall(num : Number){       
-        for(let i =0; i < num; i++){
-            let index = Math.floor(cc.random0To1() * (this.emptyTiles.length - 1));
-            let pos : cc.Vec2 = this.emptyTiles[index];   
-            if(this.useTiles.indexOf(pos) == -1){
-                this.useTiles.push(pos);
-                this.emptyTiles.splice(index,1);
-            }
-        }
-        console.log("结果方块-->",this.emptyTiles);
-        console.log("使用方块-->",this.useTiles);    
+        
+        
     }
 
     /**
-     * 初始化道具
+     *  创建怪物
+     * @param monsters 
      */
-    _initAllItems(){
+    _createMonster(monsters){
+        monsters.forEach(m => {
+            let tiles = this._randomWall(m.count);
+            tiles.forEach(pos => {
+                this.loadPrefab("Monster")
+                .then(res=>{
+                    let node = res as cc.Node;                    
+                    let monster = node.getComponent(Monster);
+                    node.position = this.getPositionFromTileCoord(pos);;
+                    monster.init(m['speed'],m['hp'],m['type']);
+                    node.setLocalZOrder(ObjectOrderEnum.Monster);
+                    this.Items.addChild(node);
+                });
+            });           
+        });       
+    }
+
+    /**
+     * 生成道具
+     * @param items 
+     */
+    _createItems(items){
+        let wallList = [];
+        items.forEach(i => {
+            let  wall;           
+            while(!wall){
+                let index = Math.floor(cc.random0To1() * (this.wallTiles.length - 1));
+                wall = this.wallTiles[index];
+                if(wallList.indexOf(wall) == -1){
+                    wallList.push({tile : wall, item : i });
+                }
+                else{
+                    wall = null;
+                }
+            }
+        });
+
+        wallList.forEach((w)=>{
+
+        this.loadPrefab("Item")
+            .then(res=>{
+                let node = res as cc.Node;                    
+                let item = node.getComponent(Item)
+                let obj;
+                switch(w.item){
+                    case ItemEnum.RunShoes:
+                    obj = new RunShoes(1,"跑鞋","增加30点移动速度","item_03",this._player)
+                    break;
+                    case ItemEnum.BombRange:
+                    obj = new BombRange(2,"爆炸范围","增加1格爆炸范围","item_01",1,5,this._player);
+                    break;
+                    case ItemEnum.BombCount:
+                    // obj = new RunShoes("炸弹数量","增加一个炸弹数量","item_04",this._player)
+                    break;            
+                }
+
+                item.init(obj);
+                node.setLocalZOrder(ObjectOrderEnum.Item);
+                node.position = this.getPositionFromTileCoord(w.tile);               
+                this.Items.addChild(node);
+            });
+
+        });
+        
+        
+        
+        
+    }
+
+    _randomWall(num : Number){   
+        let tiles : cc.Vec2[] = [];   
+        for(let i =0; i < num; i++){
+            let index = Math.floor(cc.random0To1() * (this.emptyTiles.length - 1));
+            let pos : cc.Vec2 = this.emptyTiles[index];   
+            if(tiles.indexOf(pos) == -1){
+               tiles.push(pos);
+            this.emptyTiles.splice(index,1);
+            }
+        }
+        return tiles
+    }
+
+    /**
+     * 清空数据
+     */
+    _clearData(){            
+        this.Items.removeAllChildren();
+        cc.find("Game/Player").setPosition(-226,96);
+    }
+
+    /**
+     * 切换关卡
+     */
+    loadLevel(level : number){
+        let levelName = "level-" + level;
+        //清空当前关卡数据
+        this._clearData();
+        //加载关卡数据
+        this.loadData(levelName)
+            .then(data=>{
+                cc.log("关卡数据",data);
+                //初始化墙
+                this._createWall(data['walls']);           
+               //初始化道具
+               this._createItems(data['items']);
+               //初始化怪物
+               this._createMonster(data['monsters']);
+               //初始化门                
+               //人物回到起始位置               
+            });
 
         //跑鞋
         // let node = cc.instantiate(this.ItemPrefab);
@@ -291,6 +410,37 @@ export default class GameManager extends cc.Component {
         
         
     }
+
+    updateItemsUI(item : AbsItem){   
+
+        let listRoot =  cc.find("Canvas/Ver/SkillList");
+    
+        switch(item.id){
+            case ItemEnum.BombRange:
+            let res = listRoot.getChildByName("item_"+item.id);
+            item.itemName = "范围lv"+(this._player.bombLevel -1);
+            if(!res){  
+                addItem(this.ItemUIPrefab);       
+            }
+            else{
+                let node = listRoot.getChildByName("item_"+item.id);
+                node.getComponent(ItemUI).updateItem(item);                  
+            }            
+            break;
+            default:
+                addItem(this.ItemUIPrefab);
+                break;
+        }
+
+        function  addItem(ItemUIPrefab){
+            let node = cc.instantiate(ItemUIPrefab); 
+            node.name = "item_"+item.id;
+            node.getComponent(ItemUI).init(item);  
+            listRoot.addChild(node);          
+        }
+            
+    }
+
 
 
 

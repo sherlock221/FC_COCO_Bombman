@@ -14,42 +14,46 @@ import GameManager from "../GameManager";
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class Item extends cc.Component {
+export default class ItemUI extends cc.Component {
 
-    _spr : cc.Sprite;
+    // LIFE-CYCLE CALLBACKS:
+
     _item : AbsItem;
 
-    onLoad () {
-        this._spr = this.getComponent(cc.Sprite);
-    }
+
+    @property(cc.Sprite)
+    icon : cc.Sprite;
+
+    @property(cc.Label)
+    label : cc.Label;
+
+
+    onLoad () {}
 
     start () {
-        GameManager.GetInstance().loadAtlas("item")
-        .then(res=>{
-            let atlas = res as  cc.SpriteAtlas;
-            this._spr.spriteFrame =  atlas.getSpriteFrame(this._item.itemIcon);           
-        });  
+
     }
-
-
-     /**
-     * 碰撞开始
-     * @param other   产生碰撞的另一个碰撞组件
-     * @param self    产生碰撞的自身的碰撞组件
-     */
-    onBeginContact (contact, selfCollider, otherCollider){ 
-        //触发道具效果
-        this._item.execute(); 
-        //添加到ui
-        
-        this.node.destroy();
-    }
-
 
     init(item : AbsItem){
-        this._item = item;      
-     
+        this._item = item;  
+       this.updateItem(this._item);
     }
+
+    updateItem(item : AbsItem){
+       
+          //加载图标
+          GameManager.GetInstance().loadAtlas("item")
+          .then(res=>{
+              let atlas = res as  cc.SpriteAtlas;
+              this.icon.spriteFrame =  atlas.getSpriteFrame(item.itemIcon);           
+          });  
+
+          //显示文字
+          this.label.string = item.itemName; 
+
+    }
+
+   
 
     // update (dt) {}
 }
