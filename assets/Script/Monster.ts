@@ -54,7 +54,7 @@ export default class Monster extends Role {
             //过滤障碍
             results = results.filter((r,index)=>{
                 let tag = r.collider['tag'];      
-                if(tag ==  ColliderEnum.Wall ||  tag == ColliderEnum.Steel){
+                if(tag ==  ColliderEnum.Wall ||  tag == ColliderEnum.Steel || tag == ColliderEnum.Monster){
                     return true;
                 }
                 return false;
@@ -79,16 +79,18 @@ export default class Monster extends Role {
             //方向判断
             let index = Math.floor(cc.random0To1() * emptyList.length);
             let empty = emptyList[index];
-            this.node.runAction(cc.moveTo(16/this.speed,empty.pos));
+    
 
             switch (empty.dir){
                 case 1 :
-                    this.ani.play("lower_monster_01_right");   
+                    this.ani.play("lower_monster_01_right");   
                     break;           
                 case 3 :
-                    this.ani.play("lower_monster_01_left");                    
+                    this.ani.play("lower_monster_01_left");                    
                 break;                    
             }
+
+            this.node.runAction(cc.moveTo(16/this.speed,empty.pos));
 
         }
 

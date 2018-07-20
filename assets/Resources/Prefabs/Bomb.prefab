@@ -125,7 +125,8 @@
     "node": {
       "__id__": 1
     },
-    "_enabled": true
+    "_enabled": true,
+    "range": 1
   },
   {
     "__type__": "cc.RigidBody",
@@ -159,9 +160,9 @@
     },
     "_enabled": true,
     "tag": 0,
-    "_density": 1,
+    "_density": 0,
     "_sensor": true,
-    "_friction": 0.2,
+    "_friction": 0,
     "_restitution": 0,
     "body": null,
     "_offset": {

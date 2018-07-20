@@ -1,6 +1,6 @@
 {
     "items" : [1,2,2],
-    "walls" : 20,
+    "walls" : 30,
     "door" : 1,
     "monsters" :[
         {

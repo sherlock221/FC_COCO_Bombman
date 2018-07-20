@@ -52,6 +52,8 @@ export default class GameManager extends cc.Component {
     //全部道具
     uiItems : AbsItem[];
 
+    itemPosList : cc.Vec2[];
+
     //调试模式    
     debugDrawFlags : number;
     
@@ -60,6 +62,9 @@ export default class GameManager extends cc.Component {
 
     @property(cc.Prefab)
     ItemUIPrefab : cc.Prefab;
+    
+    @property(cc.Node)
+    doorNode : cc.Node;
 
     //玩家
     _player : Player;
@@ -216,7 +221,6 @@ export default class GameManager extends cc.Component {
 
     _initMap(){
 
-        //向某一个方向移动的时候 会检测 当前位置+speed 是否会碰撞到墙壁
                 
         let tileSize = this.WallLayer.getMapTileSize();
         let layerSize = this.WallLayer.getLayerSize();
@@ -226,10 +230,6 @@ export default class GameManager extends cc.Component {
         console.log("layerSize->",layerSize)
         console.log("tiles->",tiles)
         
-        // console.log("瓦片坐标-->",this.getTileCoordFromPosition(cc.v2(8,0)));
-        // console.log("像素坐标-->",this.getPositionFromTileCoord(cc.v2(16,7)));
-        
-     
         for (let i = 0; i < tiles.length; i++) {            
            let ty = Math.floor(i / layerSize.width);
            let tx =  i % layerSize.width;
@@ -244,12 +244,22 @@ export default class GameManager extends cc.Component {
             collider['tag'] = ColliderEnum.Steel;         
             collider.apply();            
            }
-           else{               
+           else{            
+
+             //人物起始位置周边不允许出现障碍
+            let notTiles = [cc.p(1,1),cc.p(2,1),cc.p(3,1),cc.p(4,1),cc.p(1,2),cc.p(1,3),cc.p(1,4)];
+            let tempTile = cc.v2(tx,ty);
+            if(notTiles.filter((t)=> t.equals(tempTile)).length <= 0){
                 //空格子                                    
-                this.emptyTiles.push(cc.v2(tx,ty));                     
+                this.emptyTiles.push(cc.v2(tx,ty)); 
+            }
+
+                                   
            }    
         }
-                           
+
+        
+       
     }
 
     /**
@@ -259,6 +269,8 @@ export default class GameManager extends cc.Component {
         
         //随机墙壁
         this.wallTiles = this._randomWall(randomNum);   
+
+        
 
         //添加物理
         this.wallTiles.forEach(tilePos=>{                
@@ -338,6 +350,7 @@ export default class GameManager extends cc.Component {
                 item.init(obj);
                 node.setLocalZOrder(ObjectOrderEnum.Item);
                 node.position = this.getPositionFromTileCoord(w.tile);               
+                this.itemPosList.push(node.position);
                 this.Items.addChild(node);
             });
 
@@ -361,11 +374,30 @@ export default class GameManager extends cc.Component {
         return tiles
     }
 
+
+    _createDoor(doorNum){
+        for(let i=0;i<this.wallTiles.length;i++){
+            let w = this.wallTiles[i];
+            let wallPos = this.getPositionFromTileCoord(w);
+            let wallLocalPos = this.node.parent.convertToNodeSpaceAR(wallPos);
+            if(!this.itemPosList.some((p)=>{ return p.equals(wallLocalPos)})){
+                this.doorNode.position = wallLocalPos;  
+                this.doorNode.setLocalZOrder(ObjectOrderEnum.Door);
+                this.doorNode.parent = this.Items;  
+                break;
+            }
+        }
+
+
+    }
     /**
      * 清空数据
      */
     _clearData(){            
         this.Items.removeAllChildren();
+        this.itemPosList = [];       
+        this.wallTiles = [];
+        //人物回到起始位置        
         cc.find("Game/Player").setPosition(-226,96);
     }
 
@@ -386,8 +418,8 @@ export default class GameManager extends cc.Component {
                this._createItems(data['items']);
                //初始化怪物
                this._createMonster(data['monsters']);
-               //初始化门                
-               //人物回到起始位置               
+               //初始化门      
+               this._createDoor(data['door']);                                
             });
 
         //跑鞋
