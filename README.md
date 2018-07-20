@@ -1,4 +1,5 @@
 # fc炸弹人
+![image.png](https://upload-images.jianshu.io/upload_images/326507-607103842e7ea359.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ### 操作方式 
 wasd 上下左右  j 放置炸弹
