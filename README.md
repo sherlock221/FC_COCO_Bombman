@@ -3,6 +3,10 @@
 ### 操作方式 
 wasd 上下左右  j 放置炸弹
 
+### 在线预览
+http://longdaofang.com/game/bombman/index.html
+
+
 ### 实现功能:
 1.  炸弹射线检测
 2.  人物4方向移动
